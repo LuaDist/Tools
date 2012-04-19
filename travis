@@ -1,0 +1,80 @@
+#!/bin/sh -ex
+# Utility functions for use with Travis CI (travis-ci.org).
+#
+# Copyright (C) 2012 LuaDist.
+# Created by David Manura.
+# Redistribution and use of this file is allowed according to the terms of the MIT license.
+# For details see the COPYRIGHT file distributed with LuaDist.
+# Please note that the package source code is licensed under its own license.
+
+# recommend TOOL/COMPILER environment variable combinations for standard rules:
+#  - TOOL=""                     # default native gcc compiler
+#  - TOOL="i686-w64-mingw32"    # 32-bit mingw
+#  - TOOL="x86_64-w64-mingw32"  # 64-bit mingw
+#  - TOOL="arm-linux-gnueabihf" # ARM hard-float (hf), linux
+#  - COMPILER="clang"            # clang
+## - TOOL="i586-mingw32msvc"    # old 32-bit mingw
+
+[ $TOOL ] && export TOOLFILE="$HOME/$TOOL.cmake"
+
+case "$1" in
+  "install")
+    which cmake || sudo apt-get -qq install cmake
+    case "$TOOL|$COMPILER" in
+      "i586-mingw32msvc|") which $TOOL-gcc || sudo apt-get -qq install gcc-mingw32 ;;
+      "x86_64-w64-mingw32|" | "i686-w64-mingw32|") which $TOOL-gcc || sudo apt-get -qq install gcc-mingw-w64 ;;
+      "arm-linux-gnueabihf|") which $TOOL-gcc || sudo apt-get -qq install gcc-arm-linux-gnueabihf ;;
+      "|clang") which clang || sudo apt-get -qq install clang ;;
+      "|" ) ;;
+      * ) echo "ASSERT: $TOOL|$COMPILER"; exit 1 ;;
+    esac
+    if [ $TOOL ]; then
+      echo '' > $TOOLFILE
+      echo "set(toolchain $TOOL)" >> $TOOLFILE
+      echo "if(toolchain)" >> $TOOLFILE
+      echo '  set(toolchain_ ${toolchain}-)' >> $TOOLFILE
+      echo "endif()" >> $TOOLFILE
+      case "$TOOL" in
+        *linux*) echo "set(CMAKE_SYSTEM_NAME Linux)"   >> $TOOLFILE ;;
+        *mingw*) echo "set(CMAKE_SYSTEM_NAME Windows)" >> $TOOLFILE ;;
+      esac
+      echo 'set(CMAKE_C_COMPILER ${toolchain_}gcc)' >> $TOOLFILE
+      echo 'set(CMAKE_CXX_COMPILER ${toolchain_}g++)' >> $TOOLFILE
+      echo 'set(CMAKE_RC_COMPILER ${toolchain_}windres )' >> $TOOLFILE
+      echo 'set(CMAKE_RC_OUTPUT_EXTENSION .obj)' >> $TOOLFILE
+      echo 'set(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> -O coff <FLAGS> <DEFINES> <SOURCE> <OBJECT>")' >> $TOOLFILE
+      echo 'set(CMAKE_FIND_ROOT_PATH /usr/${_toolchain}/ ${CMAKE_INSTALL_PREFIX})' >> $TOOLFILE
+      echo 'set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)' >> $TOOLFILE
+      echo 'set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)' >> $TOOLFILE
+    fi
+  ;;
+  "script")
+    [ $COMPILER ] && export CC=$COMPILER
+    rm -fr _build _install; mkdir _build _install
+    cd _build
+    echo 'build0'
+    cmake -DCMAKE_TOOLCHAIN_FILE=$TOOLFILE -DCMAKE_INSTALL_PREFIX=../_install .. || echo failed
+    echo 'build1'
+    cmake -DCMAKE_TOOLCHAIN_FILE=$TOOLFILE -DCMAKE_INSTALL_PREFIX=../_install ..
+    echo 'build2'
+    make
+    echo 'build3'
+    if [ ! $TOOL ]; then CTEST_OUTPUT_ON_FAILURE=1 make test || cat Testing/Temporary/LastTest.log ; fi
+    make install
+    echo 'build done'
+  ;;
+  "install-luadist")
+    sudo apt-get install cmake >/dev/null 2>&1
+    git clone --recursive git://github.com/LuaDist/bootstrap.git _luadist >/dev/null 2>&1
+    (cd _luadist && ./bootstrap >/dev/null 2>&1)
+    echo "$PWD/_luadist/_install/bin/luadist" > ~/luadist
+  ;;
+  "script-luadist")
+    export MODULE=`basename $PWD`
+    ~/luadist _test install $LUA $MODULE-scm $CMAKE -verbose=true -test=true
+  ;;
+  *)
+    echo "travis: missing argument $1"
+    exit 1
+  ;;
+esac
