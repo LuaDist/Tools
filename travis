@@ -59,7 +59,9 @@ case "$1" in
     echo 'build2'
     make
     echo 'build3'
-    if [ ! $TOOL ]; then CTEST_OUTPUT_ON_FAILURE=1 make test || cat Testing/Temporary/LastTest.log ; fi
+    if [ ! "$TOOL" -a -f CTestTestfile.cmake ]; then
+      CTEST_OUTPUT_ON_FAILURE=1 make test || cat Testing/Temporary/LastTest.log
+    fi
     make install
     echo 'build done'
   ;;
