@@ -67,7 +67,7 @@ case "$1" in
     sudo apt-get install cmake >/dev/null 2>&1
     git clone --recursive git://github.com/LuaDist/bootstrap.git _luadist >/dev/null 2>&1
     (cd _luadist && ./bootstrap >/dev/null 2>&1)
-    echo "$PWD/_luadist/_install/bin/luadist" > ~/luadist
+    ln -s "$PWD/_luadist/_install/bin/luadist" ~/luadist
   ;;
   "script-luadist")
     export MODULE=`basename $PWD`
