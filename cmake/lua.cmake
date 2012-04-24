@@ -15,7 +15,7 @@ option ( SKIP_LUA_WRAPPER
          "Do not build and install Lua executable wrappers." OFF)
 
 # List of (Lua module name, file path) pairs.
-# Used internally by add_lua_test.  Built by install_lua_module.
+# Used internally by add_lua_test.  Built by add_lua_module.
 set ( _lua_modules )
 
 # utility function: appends path `path` to path `basepath`, properly
@@ -166,15 +166,7 @@ return status\;
             RENAME ${_source_name}.lua )
 endmacro ()
 
-# install_lua_module
-# This macro installs a lua source module into destination given by Lua
-# require syntax.
-# Binary modules are also supported where this funcion takes sources and
-# libraries to compile separated by LINK keyword.
-# USE: install_lua_module ( socket.http src/http.lua )
-# USE2: install_lua_module ( mime.core src/mime.c )
-# USE3: install_lua_module ( socket.core ${SRC_SOCKET} LINK ${LIB_SOCKET} )
-macro (install_lua_module _name )
+macro ( _lua_module_helper is_install _name )
   string ( REPLACE "." "/" _module "${_name}" )
   string ( REPLACE "." "_" _target "${_name}" )
   
@@ -182,14 +174,16 @@ macro (install_lua_module _name )
   set ( _bin_module "${_module}${CMAKE_SHARED_MODULE_SUFFIX}" )
   
   parse_arguments ( _MODULE "LINK" "" ${ARGN} )
-  get_filename_component ( _ext ${ARGV1} EXT )
+  get_filename_component ( _ext ${ARGV2} EXT )
   if ( _ext STREQUAL ".lua" )
     get_filename_component ( _path ${_lua_module} PATH )
     get_filename_component ( _filename ${_lua_module} NAME )
-    install ( FILES ${ARGV1} DESTINATION ${INSTALL_LMOD}/${_path}
-              RENAME ${_filename} )
-    _append_path ( "${CMAKE_CURRENT_SOURCE_DIR}" "${ARGV1}" _path )
-    list ( APPEND _lua_modules "${_name}" "${_path}" )
+    _append_path ( "${CMAKE_CURRENT_SOURCE_DIR}" "${ARGV2}" _module_path )
+    list ( APPEND _lua_modules "${_name}" "${_module_path}" )
+    if ( is_install )
+      install ( FILES ${ARGV2} DESTINATION ${INSTALL_LMOD}/${_module_path}
+                RENAME ${_filename} )
+    endif ()
   else ()
     enable_language ( C )
     get_filename_component ( _module_name ${_bin_module} NAME_WE )
@@ -202,11 +196,36 @@ macro (install_lua_module _name )
     target_link_libraries ( ${_target} ${LUA_LIBRARY} ${_MODULE_LINK} )
     set_target_properties ( ${_target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY
                 "${_module_path}" PREFIX "" OUTPUT_NAME "${_module_name}" )
-     
-    install ( TARGETS ${_target} DESTINATION ${INSTALL_CMOD}/${_module_path})
     list ( APPEND _lua_modules "${_name}"
            "${CMAKE_CURRENT_BINARY_DIR}/\${CMAKE_CFG_INTDIR}/${_bin_module}" )
+    if ( is_install )
+      install ( TARGETS ${_target} DESTINATION ${INSTALL_CMOD}/${_module_path})
+    endif ()
   endif ()
+endmacro ()
+
+# add_lua_module
+# Builds a Lua source module into a destination locatable by Lua
+# require syntax.
+# Binary modules are also supported where this function takes sources and
+# libraries to compile separated by LINK keyword.
+# USE: add_lua_module ( socket.http src/http.lua )
+# USE2: add_lua_module ( mime.core src/mime.c )
+# USE3: add_lua_module ( socket.core ${SRC_SOCKET} LINK ${LIB_SOCKET} )
+# Also sets variable _module_path (relative path where module typically
+# would be installed).
+macro ( add_lua_module _name)
+  _lua_module_helper ( FALSE ${_name} ${ARGN} )
+endmacro ()
+
+
+# install_lua_module
+# This is the same as `add_lua_module` but also installs the module.
+# USE: install_lua_module ( socket.http src/http.lua )
+# USE2: install_lua_module ( mime.core src/mime.c )
+# USE3: install_lua_module ( socket.core ${SRC_SOCKET} LINK ${LIB_SOCKET} )
+macro ( install_lua_module _name )
+  _lua_module_helper ( TRUE ${_name} ${ARGN} )
 endmacro ()
 
 # Builds string representing Lua table mapping Lua modules names to file
