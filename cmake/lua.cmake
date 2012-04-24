@@ -249,7 +249,7 @@ macro ( add_lua_test _testfile )
     set ( TESTWRAPPER ${CMAKE_CURRENT_BINARY_DIR}/${TESTFILENAME} )
     _make_module_table ( _table )
     set ( TESTWRAPPERSOURCE
-"local configuration = ...
+"local CMAKE_CFG_INTDIR = ... or '.'
 ${_table}
 local function preload_modules(modules)
   for name, path in pairs(modules) do
@@ -259,7 +259,7 @@ local function preload_modules(modules)
       local name = name:gsub('.*%-', '') -- remove any hyphen prefix
       local symbol = 'luaopen_' .. name:gsub('%.', '_')
           --improve: generalize to support all-in-one loader?
-      local path = path:gsub('%$%{CMAKE_CFG_INTDIR%}', configuration or '')
+      local path = path:gsub('%$%{CMAKE_CFG_INTDIR%}', CMAKE_CFG_INTDIR)
       package.preload[name] = assert(package.loadlib(path, symbol))
     end
   end
@@ -277,9 +277,12 @@ return assert(loadfile '${TESTFILEABS}')(unpack(arg))
     endif ()
     file ( WRITE ${TESTWRAPPER} ${TESTWRAPPERSOURCE})
     add_test ( NAME ${TESTFILEBASE} COMMAND ${_pre} ${LUA}
-               ${TESTWRAPPER} $<CONFIGURATION> ${_ARG_DEFAULT_ARGS} )
+               ${TESTWRAPPER} "${CMAKE_CFG_INTDIR}"
+               ${_ARG_DEFAULT_ARGS} )
   endif ()
   # see also http://gdcm.svn.sourceforge.net/viewvc/gdcm/Sandbox/CMakeModules/UsePythonTest.cmake
+  # Note: ${CMAKE_CFG_INTDIR} is a command-line argument to allow proper
+  # expansion by the native build tool.
 endmacro ()
 
 
