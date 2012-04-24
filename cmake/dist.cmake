@@ -8,9 +8,13 @@
 # Please note that the package source code is licensed under its own license.
 
 ## Extract information from dist.info
+if ( NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dist.info )
+  message ( FATAL_ERROR
+    "Missing dist.info file (${CMAKE_CURRENT_SOURCE_DIR}/dist.info)." )
+endif ()
 file ( READ ${CMAKE_CURRENT_SOURCE_DIR}/dist.info DIST_INFO )
-if ( ${DIST_INFO} STREQUAL "" )
-  message ( FATAL_ERROR "Failed to load dist.info" )
+if ( "${DIST_INFO}" STREQUAL "" )
+  message ( FATAL_ERROR "Failed to load dist.info." )
 endif ()
 # Reads field `name` from dist.info string `DIST_INFO` into variable `var`.
 macro ( _parse_dist_field name var )
