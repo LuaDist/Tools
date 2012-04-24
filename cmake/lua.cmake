@@ -214,12 +214,14 @@ endmacro ()
 macro ( _make_module_table _outvar )
   set ( ${_outvar} )
   list ( LENGTH _lua_modules _n )
+  if ( ${_n} GREATER 0 ) # avoids cmake complaint
   foreach ( _i RANGE 1 ${_n} 2 )
     list ( GET _lua_modules ${_i} _path )
     math ( EXPR _ii ${_i}-1 )
     list ( GET _lua_modules ${_ii} _name )
     set ( ${_outvar} "${_table}  ['${_name}'] = '${_path}'\;\n")
   endforeach ()
+  endif ()
   set ( ${_outvar}
 "local modules = {
 ${_table}}" )
