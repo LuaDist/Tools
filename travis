@@ -21,7 +21,7 @@ uname -a   # details about system being built on.
 
 case "$1" in
   "install")
-	sudo dpkg --configure -a
+	sudo apt-get install -f
     which cmake || sudo apt-get -qq install cmake
     case "$TOOL|$COMPILER" in
       "i586-mingw32msvc|") which $TOOL-gcc || sudo apt-get -qq install gcc-mingw32 ;;
