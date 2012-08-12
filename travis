@@ -17,7 +17,7 @@
 
 uname -a   # details about system being built on.
 
-[ $TOOL ] && export CACHE_FILE="$HOME/$TOOL.cmake"
+[ $TOOL ] && export TOOLFILE="$HOME/$TOOL.cmake"
 
 case "$1" in
   "install")
@@ -31,23 +31,23 @@ case "$1" in
       * ) echo "ASSERT: $TOOL|$COMPILER"; exit 1 ;;
     esac
     if [ $TOOL ]; then
-      echo '' > $CACHE_FILE
-      echo "set(toolchain $TOOL)" >> $CACHE_FILE
-      echo "if(toolchain)" >> $CACHE_FILE
-      echo '  set(toolchain_ ${toolchain}-)' >> $CACHE_FILE
-      echo "endif()" >> $CACHE_FILE
+      echo '' > $TOOLFILE
+      echo "set(toolchain $TOOL)" >> $TOOLFILE
+      echo "if(toolchain)" >> $TOOLFILE
+      echo '  set(toolchain_ ${toolchain}-)' >> $TOOLFILE
+      echo "endif()" >> $TOOLFILE
       case "$TOOL" in
-        *linux*) echo "set(CMAKE_SYSTEM_NAME Linux)"   >> $CACHE_FILE ;;
-        *mingw*) echo "set(CMAKE_SYSTEM_NAME Windows)" >> $CACHE_FILE ;;
+        *linux*) echo "set(CMAKE_SYSTEM_NAME Linux)"   >> $TOOLFILE ;;
+        *mingw*) echo "set(CMAKE_SYSTEM_NAME Windows)" >> $TOOLFILE ;;
       esac
-      echo 'set(CMAKE_C_COMPILER ${toolchain_}gcc)' >> $CACHE_FILE
-      echo 'set(CMAKE_CXX_COMPILER ${toolchain_}g++)' >> $CACHE_FILE
-      echo 'set(CMAKE_RC_COMPILER ${toolchain_}windres )' >> $CACHE_FILE
-      echo 'set(CMAKE_RC_OUTPUT_EXTENSION .obj)' >> $CACHE_FILE
-      echo 'set(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> -O coff <FLAGS> <DEFINES> <SOURCE> <OBJECT>")' >> $CACHE_FILE
-      echo 'set(CMAKE_FIND_ROOT_PATH /usr/${_toolchain}/ ${CMAKE_INSTALL_PREFIX})' >> $CACHE_FILE
-      echo 'set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)' >> $CACHE_FILE
-      echo 'set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)' >> $CACHE_FILE
+      echo 'set(CMAKE_C_COMPILER ${toolchain_}gcc)' >> $TOOLFILE
+      echo 'set(CMAKE_CXX_COMPILER ${toolchain_}g++)' >> $TOOLFILE
+      echo 'set(CMAKE_RC_COMPILER ${toolchain_}windres )' >> $TOOLFILE
+      echo 'set(CMAKE_RC_OUTPUT_EXTENSION .obj)' >> $TOOLFILE
+      echo 'set(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> -O coff <FLAGS> <DEFINES> <SOURCE> <OBJECT>")' >> $TOOLFILE
+      echo 'set(CMAKE_FIND_ROOT_PATH /usr/${_toolchain}/ ${CMAKE_INSTALL_PREFIX})' >> $TOOLFILE
+      echo 'set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)' >> $TOOLFILE
+      echo 'set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)' >> $TOOLFILE
     fi
   ;;
   "bootstrap")
@@ -58,7 +58,7 @@ case "$1" in
   "build")
 	[ $COMPILER ] && export CC=$COMPILER
     export MODULE=`basename $PWD`
-    ~/luadist _test install $MODULE-scm -verbose -cache_file=$CACHE_FILE
+    ~/luadist _test install $MODULE-scm -verbose -DCMAKE_TOOLCHAIN_FILE=$TOOLFILE
   ;;
   *)
     echo "travis: missing argument $1"
