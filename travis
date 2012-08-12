@@ -56,8 +56,9 @@ case "$1" in
     ln -s "$PWD/_luadist/_install/bin/luadist" ~/luadist
   ;;
   "build")
+	[ $COMPILER ] && export CC=$COMPILER
     export MODULE=`basename $PWD`
-    ~/luadist _test install $LUA $MODULE-scm $CMAKE -verbose -test -cache_file=$CACHE_FILE
+    ~/luadist _test install $MODULE-scm -verbose -cache_file=$CACHE_FILE
   ;;
   *)
     echo "travis: missing argument $1"
