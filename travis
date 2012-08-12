@@ -24,7 +24,7 @@ case "$1" in
     which cmake || sudo apt-get -qq install cmake
     case "$TOOL|$COMPILER" in
       "i586-mingw32msvc|") which $TOOL-gcc || sudo apt-get -qq install gcc-mingw32 ;;
-      "x86_64-w64-mingw32|" | "i686-w64-mingw32|") which $TOOL-gcc || sudo apt-cache search mingw ;;
+      "x86_64-w64-mingw32|" | "i686-w64-mingw32|") which $TOOL-gcc || sudo apt-get install mingw-w64 ;;
       "x86_64-w64-mingw32|" | "i686-w64-mingw32|") which $TOOL-gcc || sudo apt-get -qq install gcc-mingw-w64 ;;
       "arm-linux-gnueabihf|") which $TOOL-gcc || sudo apt-get -qq install gcc-arm-linux-gnueabihf ;;
       "|clang") which clang || sudo apt-get -qq install clang ;;
