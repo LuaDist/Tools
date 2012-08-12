@@ -1,0 +1,42 @@
+#
+# LuaDist Travis-CI Hook
+#
+
+# Since CMake is not directly supported we use erlang VMs
+language: erlang
+
+# Try using multiple Lua Implementations
+env:
+  - TOOL=""                     # Use native compiler (GCC usually)
+  - COMPILER="clang"            # Use clang
+  - TOOL="i686-w64-mingw32"     # 32bit MinGW
+  - TOOL="x86_64-w64-mingw32"   # 64bit MinGW
+  - TOOL="arm-linux-gnueabihf"  # ARM hard-float (hf), linux
+  - TOOL="i586-mingw32msvc"     # old 32bit MinGW
+
+# Install dependencies
+install:
+  - git clone git://github.com/LuaDist/_util.git ~/_util
+  - ~/_util/travis install
+  - ~/_util/travis bootstrap
+
+# Deploy the module
+script:
+  - ~/_util/travis build
+
+# Execute additional tests or commands
+#after_script:
+#  - ~/_util/travis test
+
+# Only watch the master branch
+branches:
+  only:
+    - master
+
+# Notify the LuaDist Dev group if needed
+notifications:
+  recipients:
+    - luadist-dev@googlegroups.com
+  email:
+    on_success: change
+    on_failure: always
