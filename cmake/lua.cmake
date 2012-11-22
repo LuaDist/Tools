@@ -11,8 +11,9 @@ set ( INSTALL_LMOD ${INSTALL_LIB}/lua
 set ( INSTALL_CMOD ${INSTALL_LIB}/lua
       CACHE PATH "Directory to install Lua binary modules." )
 
-option ( SKIP_LUA_WRAPPER
-         "Do not build and install Lua executable wrappers." OFF)
+option ( LUA_SKIP_WRAPPER
+         "Do not build and install Lua executable wrappers." OFF )
+option ( LUA_STATIC_MODULE "Build modules for static linking" OFF )
 
 # List of (Lua module name, file path) pairs.
 # Used internally by add_lua_test.  Built by add_lua_module.
@@ -31,9 +32,10 @@ endmacro ()
 # install_lua_executable ( target source )
 # Automatically generate a binary if srlua package is available
 # The application or its source will be placed into /bin 
-# If the application source did have .lua suffix then it will be removed
+# If the application source did not have .lua suffix then it will be added
 # USE: lua_executable ( sputnik src/sputnik.lua )
 macro ( install_lua_executable _name _source )
+  get_filename_component ( _source_name ${_source} NAME_WE )
   # Find srlua and glue
   find_program( SRLUA_EXECUTABLE NAMES srlua )
   find_program( GLUE_EXECUTABLE NAMES glue )
@@ -41,7 +43,6 @@ macro ( install_lua_executable _name _source )
   set ( _exe ${CMAKE_CURRENT_BINARY_DIR}/${_name}${CMAKE_EXECUTABLE_SUFFIX} )
   if ( NOT SKIP_LUA_WRAPPER AND SRLUA_EXECUTABLE AND GLUE_EXECUTABLE )
     # Generate binary gluing the lua code to srlua, this is a robuust approach for most systems
-    # Recommended, expecially for Windows systems
     add_custom_command(
       OUTPUT ${_exe}
       COMMAND ${GLUE_EXECUTABLE} 
@@ -56,16 +57,12 @@ macro ( install_lua_executable _name _source )
     )
     # Install with run permissions
     install ( PROGRAMS ${_exe} DESTINATION ${INSTALL_BIN} COMPONENT Runtime)
-    # Also install the source as optional component
-    install ( PROGRAMS ${_source} DESTINATION ${INSTALL_FOO} 
-            RENAME ${_name}
-    	      COMPONENT Other 
-    )
+	# Also install source as optional resurce
+	install ( FILES ${_source} DESTINATION ${INSTALL_FOO} COMPONENT Other )
   else()
-    # Install into bin as is, we assume the executable uses UNIX shebang
-    # NOTE: This approach is unsuitable for non UNIX systems
+    # Install into bin as is but without the lua suffix, we assume the executable uses UNIX shebang/hash-bang magic
     install ( PROGRAMS ${_source} DESTINATION ${INSTALL_BIN}
-            RENAME ${_name}
+            RENAME ${_source_name}
             COMPONENT Runtime
     )
   endif()
@@ -128,13 +125,28 @@ macro ( _lua_module_helper is_install _name )
       list ( APPEND _lua_modules "${_thisname}"
              "${CMAKE_CURRENT_BINARY_DIR}/\${CMAKE_CFG_INTDIR}/${_module}" )
     endforeach ()
-   
-    add_library( ${_target} MODULE ${_MODULE_SRC})
-    target_link_libraries ( ${_target} ${LUA_LIBRARY} ${_MODULE_LINK} )
-    set_target_properties ( ${_target} PROPERTIES LIBRARY_OUTPUT_DIRECTORY
-                "${_module_dir}" PREFIX "" OUTPUT_NAME "${_module_filenamebase}" )
+	
+    # Static module (not linking to lua)
+    if ( LUA_STATIC_MODULE )
+    	add_library( ${_target} STATIC ${_MODULE_SRC})
+    	target_link_libraries ( ${_target} ${_MODULE_LINK} )
+    else ()
+    # Dynamic module
+      add_library( ${_target} MODULE ${_MODULE_SRC})
+      target_link_libraries ( ${_target} ${LUA_LIBRARY} ${_MODULE_LINK} )
+    endif ()
+
+    set_target_properties ( ${_target} PROPERTIES 
+      ARCHIVE_OUTPUT_DIRECTORY "${_module_dir}" 
+      LIBRARY_OUTPUT_DIRECTORY "${_module_dir}" 
+      PREFIX "" 
+      OUTPUT_NAME "${_module_filenamebase}" )
     if ( ${is_install} )
-      install ( TARGETS ${_target} DESTINATION ${INSTALL_CMOD}/${_module_dir} COMPONENT Runtime)
+      install ( TARGETS ${_target} 
+        LIBRARY DESTINATION ${INSTALL_CMOD}/${_module_dir}
+        COMPONENT Runtime
+        ARCHIVE DESTINATION ${INSTALL_CMOD}/${_module_dir}
+        COMPONENT Library )
     endif ()
   endif ()
 endmacro ()
