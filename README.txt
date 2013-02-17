@@ -1,15 +1,12 @@
-This folder contains various utility files for the LuaDist [1,2] project.
+This repository contains various tools that are used in the LuaDist [1,2] project.
 
-Files:
-
-  travis
-    Utility functions to be called from travis-ci [3] ".travis.yml"
-    files in each package repo.
-  cmake/dist.cmake
-    CMake [4] utility functions to be called from the "CMakeLists.txt"
-    files in each package.
-  cmake/lua.cmake
-    CMake utility functions for use when building Lua modules.
+travis
+	travis - Utility functions for travis-ci[3] hooks
+	travis.yml - Hook definition. copy to project roos as ".travis.yml"
+cmake
+	dist.cmake - CMake[4] utility functions to be called from the "CMakeLists.txt" files in each package.
+ 	lua.cmake - CMake utility functions for use when building Lua modules.
+ 	FindLua.cmake - Recommended Lua find module that will also work with lua 5.2 and luajit
 
 [1] http://luadist.org
 [2] https://github.com/LuaDist/

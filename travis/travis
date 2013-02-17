@@ -58,7 +58,7 @@ case "$1" in
   ;;
   "build")
     export MODULE=`basename $PWD`
-    ~/luadist _test install $MODULE-scm -verbose -DCMAKE_TOOLCHAIN_FILE=$TOOLFILE
+    ~/luadist _test install $MODULE-scm -binary=false -verbose -DCMAKE_TOOLCHAIN_FILE=$TOOLFILE
   ;;
   *)
     echo "travis: missing argument $1"
