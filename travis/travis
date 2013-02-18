@@ -21,13 +21,13 @@ uname -a   # details about system being built on.
 
 case "$1" in
   "install")
-    which cmake || sudo apt-get -qq install cmake
+    which cmake || sudo apt-get -y install cmake
     case "$TOOL|$COMPILER" in
-      "i586-mingw32msvc|") which $TOOL-gcc || sudo apt-get -qq install gcc-mingw32 ;;
-      "x86_64-w64-mingw32|" | "i686-w64-mingw32|") which $TOOL-gcc || sudo apt-get -qq install gcc-mingw-w64 ;;
-      "arm-linux-gnueabihf|") which $TOOL-gcc || sudo apt-get -qq install gcc-arm-linux-gnueabihf ;;
-      "|clang") which clang || sudo apt-get -qq install clang || export CC=$COMPILER ;;
-	  "|fortran") which gfortran || sudo apt-get -qq install gfortran ;;
+      "i586-mingw32msvc|") which $TOOL-gcc || sudo apt-get -y install gcc-mingw32 ;;
+      "x86_64-w64-mingw32|" | "i686-w64-mingw32|") which $TOOL-gcc || sudo apt-get -y install gcc-mingw-w64 ;;
+      "arm-linux-gnueabihf|") which $TOOL-gcc || sudo apt-get -y install gcc-arm-linux-gnueabihf ;;
+      "|clang") which clang || sudo apt-get -y install clang || export CC=$COMPILER ;;
+	  "|fortran") which gfortran || sudo apt-get -y install gfortran ;;
       "|" ) ;;
       * ) echo "ASSERT: $TOOL|$COMPILER"; exit 1 ;;
     esac
