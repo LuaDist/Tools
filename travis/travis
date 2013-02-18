@@ -29,9 +29,9 @@ case "$1" in
       "gcc") which gcc || sudo apt-get -f -y install build-essential ;;
       "clang") which clang || sudo apt-get -f -y install clang || export CC=clang;;
 	    "gfortran") which gfortran || sudo apt-get -f -y install gfortran ;;
-      "i586-mingw32msvc") which $TOOL-gcc || sudo apt-get -f -y install gcc-mingw32 || CMAKE_TOOL=$TOOL ;;
-      "x86_64-w64-mingw32" | "i686-w64-mingw32") which $TOOL-gcc || sudo apt-get -f -y install gcc-mingw-w64-i686  gcc-mingw-w64-x86-64 gcc-mingw-w64 binutils-mingw-w64-x86-64 binutils-mingw-w64-i686 || CMAKE_TOOL=$TOOL ;;
-      "arm-linux-gnueabihf") which $TOOL-gcc || sudo apt-get -f -y install gcc-arm-linux-gnueabihf || CMAKE_TOOL=$TOOL ;;
+      "i586-mingw32msvc") which $TOOL-gcc || sudo apt-get -f -y install gcc-mingw32 && CMAKE_TOOL=$TOOL ;;
+      "x86_64-w64-mingw32" | "i686-w64-mingw32") which $TOOL-gcc || sudo apt-get -f -y install gcc-mingw-w64-i686  gcc-mingw-w64-x86-64 gcc-mingw-w64 binutils-mingw-w64-x86-64 binutils-mingw-w64-i686 && CMAKE_TOOL=$TOOL ;;
+      "arm-linux-gnueabihf") which $TOOL-gcc || sudo apt-get -f -y install gcc-arm-linux-gnueabihf && CMAKE_TOOL=$TOOL ;;
       * ) echo "ASSERT: $TOOL"; exit 1 ;;
     esac
 
